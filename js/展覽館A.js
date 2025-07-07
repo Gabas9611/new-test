@@ -1209,11 +1209,11 @@ renderer.domElement.addEventListener('touchmove', (e) => {
     const deltaX = e.touches[0].clientX - previousMousePosition.x;
     const deltaY = e.touches[0].clientY - previousMousePosition.y;
 
-    camera.rotation.y -= deltaX * 0.02;
-    camera.rotation.x -= deltaY * 0.02;
-    camera.rotation.x = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, camera.rotation.x));
+    c目前相機.rotation.y -= deltaX * 0.02; 
+    c目前相機.rotation.x -= deltaY * 0.02; 
+    c目前相機.rotation.x = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, 目前相機.rotation.x));
 
-    console.log("📱 touchmove | rotX:", camera.rotation.x.toFixed(2), "| rotY:", camera.rotation.y.toFixed(2));
+   console.log("📱 touchmove | rotX:", currentCamera.rotation.x.toFixed(2), "| rotY:", currentCamera.rotation.y.toFixed (2)); 
 
     previousMousePosition = {
         x: e.touches[0].clientX,
@@ -1246,9 +1246,9 @@ function onMouseMove(e) {
     const deltaX = e.clientX - previousMousePosition.x;
     const deltaY = e.clientY - previousMousePosition.y;
 
-    camera.rotation.y -= deltaX * sensitivity;
-    camera.rotation.x -= deltaY * sensitivity;
-    camera.rotation.x = clamp(camera.rotation.x, -maxVerticalAngle, maxVerticalAngle);
+    c urrentC amera.rotation.y - = deltaX *靈敏度; 
+    c urrentC amera.rotation.x - = deltaY * 靈敏度; 
+    c當前相機.旋轉.x = clip(當前相機.旋轉.x， -maxVerticalAngle， maxVerticalAngle);
 
     previousMousePosition = { x: e.clientX, y: e.clientY };
 }
@@ -1275,9 +1275,9 @@ renderer.domElement.addEventListener('touchmove', (e) => {
     const deltaX = e.touches[0].clientX - previousMousePosition.x;
     const deltaY = e.touches[0].clientY - previousMousePosition.y;
 
-    camera.rotation.y -= deltaX * sensitivity;
-    camera.rotation.x -= deltaY * sensitivity;
-    camera.rotation.x = clamp(camera.rotation.x, -maxVerticalAngle, maxVerticalAngle);
+    c urrentC amera.rotation.y - = deltaX *靈敏度; 
+    c urrentC amera.rotation.x - = deltaY * 靈敏度; 
+    c當前相機.旋轉.x = clip(當前相機.旋轉.x， -maxVerticalAngle， maxVerticalAngle);
 
     previousMousePosition = {
         x: e.touches[0].clientX,
