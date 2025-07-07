@@ -152,11 +152,22 @@ createApp({
             let displayContent = '沒有找到該物件的介紹資訊。';
 
             // 如果傳入了 clickedObject 且它有 customDisplayName，則優先使用 customDisplayName 作為標題
-            if (clickedObject && clickedObject.userData && clickedObject.userData.customDisplayName) {
-                displayTitle = clickedObject.userData.customDisplayName;
+            if (clickedObject) {
+                let parent = clickedObject;
+                while (parent) {
+                    if (parent.userData && parent.userData.customDisplayName) {
+                        displayTitle = parent.userData.customDisplayName;
+                        break;
+                    }
+                    parent = parent.parent;
+                }
             }
 
             // 根據原始物件名稱設定不同的內容 (這裡保持您現有的邏輯，用 itemName 來判斷)
+            this.showImageCarousel = false;
+            this.carouselImages = [];
+            this.currentImageIndex = 0;
+
             switch (itemName) {
                 case '畫框01':
                     displayContent = [
@@ -178,7 +189,7 @@ createApp({
                     this.carouselImages = [
                         './img/松山文創-舊照片.jpg',
                         './img/松山文創-畫框01.jpg'
-                        
+
                     ];
                     this.currentImageIndex = 0;
                     break;
@@ -203,7 +214,7 @@ createApp({
                     this.carouselImages = [
                         './img/華山1914文化創意園區-舊照片.png',
                         './img/華山1914文化創意園區-畫框02.jpg'
-                        
+
                     ];
                     this.currentImageIndex = 0;
                     break;
@@ -443,6 +454,8 @@ createApp({
 
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object; // 這是實際被點擊的 Three.js 物件
+                console.log('Clicked object:', clickedObject);
+                console.log('Clicked object userData:', clickedObject.userData);
 
                 // clickableFramesAndDoor 和 frameNames 現在是全域變數
                 const clickableObjects = ["畫框01", "畫框02", "畫框03", "畫框04", "畫框05", "畫框06", "畫框07", "畫框08", "桌子", "大門"];
@@ -1100,57 +1113,57 @@ createApp({
 
         // 導覽攝影機的設定 (保持不變)
         cameraNav1 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav1.name = "NavCamera1";
-                cameraNav1.position.set(3.13, -0.3, -0.21);
-        
-                cameraNav2 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav2.name = "NavCamera2";
-                cameraNav2.position.set(-2.49, -0.3, -0.21);
-        
-                cameraNav3 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav3.name = "NavCamera3";
-                cameraNav3.position.set(3.38, -0.3, -0.21);
-        
-                cameraNav4 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav4.name = "NavCamera4";
-                cameraNav4.position.set(1.50, -0.3, -0.21);
-        
-                cameraNav5 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav5.name = "NavCamera5";
-                cameraNav5.position.set(-1.9, -0.3, -0.21);
-        
-                cameraNav6 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav6.name = "NavCamera6";
-                cameraNav6.position.set(-2.8, -0.3, -0.21);
-        
-        
-                cameraNav7 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav7.name = "NavCamera7";
-                cameraNav7.position.set(3.13, -0.3, -0.21);
-                cameraNav7.rotation.y = Math.PI; // 將攝影機繞 Y 軸旋轉 180 度 (π 弧度)
-        
-                cameraNav8 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav8.name = "NavCamera8";
-                cameraNav8.position.set(-2.49, -0.3, -0.21); // 調整位置
-        
-        
-                cameraNav9 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav9.name = "NavCamera9";
-                cameraNav9.position.set(-2.49, -0.3, -0.21); // 調整位置
-                cameraNav9.rotation.y = Math.PI;
-        
-                cameraNav10 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav10.name = "NavCamera10";
-                cameraNav10.position.set(-1.1, -0.3, -0.21);
-                cameraNav10.rotation.y = -Math.PI / 2;
-        
-                cameraNav11 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav11.name = "NavCamera11";
-                cameraNav11.position.set(-2.49, -0.3, -0.21);
-        
-                cameraNav12 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                cameraNav12.name = "NavCamera12";
-                cameraNav12.position.set(3.13, -0.3, -0.21);
+        cameraNav1.name = "NavCamera1";
+        cameraNav1.position.set(3.13, -0.3, -0.21);
+
+        cameraNav2 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav2.name = "NavCamera2";
+        cameraNav2.position.set(-2.49, -0.3, -0.21);
+
+        cameraNav3 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav3.name = "NavCamera3";
+        cameraNav3.position.set(3.38, -0.3, -0.21);
+
+        cameraNav4 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav4.name = "NavCamera4";
+        cameraNav4.position.set(1.50, -0.3, -0.21);
+
+        cameraNav5 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav5.name = "NavCamera5";
+        cameraNav5.position.set(-1.9, -0.3, -0.21);
+
+        cameraNav6 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav6.name = "NavCamera6";
+        cameraNav6.position.set(-2.8, -0.3, -0.21);
+
+
+        cameraNav7 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav7.name = "NavCamera7";
+        cameraNav7.position.set(3.13, -0.3, -0.21);
+        cameraNav7.rotation.y = Math.PI; // 將攝影機繞 Y 軸旋轉 180 度 (π 弧度)
+
+        cameraNav8 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav8.name = "NavCamera8";
+        cameraNav8.position.set(-2.49, -0.3, -0.21); // 調整位置
+
+
+        cameraNav9 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav9.name = "NavCamera9";
+        cameraNav9.position.set(-2.49, -0.3, -0.21); // 調整位置
+        cameraNav9.rotation.y = Math.PI;
+
+        cameraNav10 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav10.name = "NavCamera10";
+        cameraNav10.position.set(-1.1, -0.3, -0.21);
+        cameraNav10.rotation.y = -Math.PI / 2;
+
+        cameraNav11 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav11.name = "NavCamera11";
+        cameraNav11.position.set(-2.49, -0.3, -0.21);
+
+        cameraNav12 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        cameraNav12.name = "NavCamera12";
+        cameraNav12.position.set(3.13, -0.3, -0.21);
 
 
 
@@ -1180,68 +1193,69 @@ createApp({
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
-// ✅ 自訂第一人稱視角旋轉控制器（滑鼠 + 觸控）
-let isDragging = false;
-let previousMousePosition = { x: 0, y: 0 };
-const sensitivity = 0.005;
-const maxVerticalAngle = Math.PI / 2.5;
+        container.appendChild(renderer.domElement);
+        // ✅ 自訂第一人稱視角旋轉控制器（滑鼠 + 觸控）
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const sensitivity = 0.005;
+        const maxVerticalAngle = Math.PI / 2.5;
 
-function clamp(val, min, max) {
-    return Math.max(min, Math.min(max, val));
-}
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
+        }
 
-function onMouseDown(e) {
-    isDragging = true;
-    previousMousePosition = { x: e.clientX, y: e.clientY };
-}
+        function onMouseDown(e) {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        }
 
-function onMouseMove(e) {
-    if (!isDragging) return;
-    const deltaX = e.clientX - previousMousePosition.x;
-    const deltaY = e.clientY - previousMousePosition.y;
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            const deltaX = e.clientX - previousMousePosition.x;
+            const deltaY = e.clientY - previousMousePosition.y;
 
-    currentCamera.rotation.y -= deltaX * sensitivity;
-    currentCamera.rotation.x -= deltaY * sensitivity;
-    currentCamera.rotation.x = clamp(currentCamera.rotation.x, -maxVerticalAngle, maxVerticalAngle);
+            currentCamera.rotation.y -= deltaX * sensitivity;
+            currentCamera.rotation.x -= deltaY * sensitivity;
+            currentCamera.rotation.x = clamp(currentCamera.rotation.x, -maxVerticalAngle, maxVerticalAngle);
 
-    previousMousePosition = { x: e.clientX, y: e.clientY };
-}
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        }
 
-function onMouseUp() {
-    isDragging = false;
-}
+        function onMouseUp() {
+            isDragging = false;
+        }
 
-renderer.domElement.addEventListener('mousedown', onMouseDown);
-renderer.domElement.addEventListener('mousemove', onMouseMove);
-renderer.domElement.addEventListener('mouseup', onMouseUp);
+        renderer.domElement.addEventListener('mousedown', onMouseDown);
+        renderer.domElement.addEventListener('mousemove', onMouseMove);
+        renderer.domElement.addEventListener('mouseup', onMouseUp);
 
-// ✅ 手機觸控事件
-renderer.domElement.addEventListener('touchstart', (e) => {
-    isDragging = true;
-    previousMousePosition = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
-    };
-}, { passive: true });
+        // ✅ 手機觸控事件
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            previousMousePosition = {
+                x: e.touches[0].clientX,
+                y: e.touches[0].clientY
+            };
+        }, { passive: true });
 
-renderer.domElement.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    const deltaX = e.touches[0].clientX - previousMousePosition.x;
-    const deltaY = e.touches[0].clientY - previousMousePosition.y;
+        renderer.domElement.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.touches[0].clientX - previousMousePosition.x;
+            const deltaY = e.touches[0].clientY - previousMousePosition.y;
 
-    currentCamera.rotation.y -= deltaX * sensitivity;
-    currentCamera.rotation.x -= deltaY * sensitivity;
-    currentCamera.rotation.x = clamp(currentCamera.rotation.x, -maxVerticalAngle, maxVerticalAngle);
+            currentCamera.rotation.y -= deltaX * sensitivity;
+            currentCamera.rotation.x -= deltaY * sensitivity;
+            currentCamera.rotation.x = clamp(currentCamera.rotation.x, -maxVerticalAngle, maxVerticalAngle);
 
-    previousMousePosition = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
-    };
-}, { passive: true });
+            previousMousePosition = {
+                x: e.touches[0].clientX,
+                y: e.touches[0].clientY
+            };
+        }, { passive: true });
 
-renderer.domElement.addEventListener('touchend', () => {
-    isDragging = false;
-});
+        renderer.domElement.addEventListener('touchend', () => {
+            isDragging = false;
+        });
 
         container.appendChild(renderer.domElement);
 
@@ -1293,9 +1307,8 @@ renderer.domElement.addEventListener('touchend', () => {
 
                 // *** 新增開始：為特定物件添加自訂顯示名稱到 userData ***
                 loadedModel.traverse((child) => {
-                    if (child.isMesh) {
-                        switch (child.name) {
-                            case '畫框01':
+                    switch (child.name) {
+                        case '畫框01':
                             child.userData.customDisplayName = '松山文創園區';
                             console.log(`Set customDisplayName for ${child.name}:`, child.userData.customDisplayName);
                             break;
@@ -1335,9 +1348,9 @@ renderer.domElement.addEventListener('touchend', () => {
                             child.userData.customDisplayName = '出口';
                             console.log(`Set customDisplayName for ${child.name}:`, child.userData.customDisplayName);
                             break;
-                            // 如果有其他物件需要自訂名稱，可以在這裡添加
-                        }
+                        // 如果有其他物件需要自訂名稱，可以在這裡添加
                     }
+
                 });
                 // *** 新增結束：為特定物件添加自訂顯示名稱到 userData ***
 
