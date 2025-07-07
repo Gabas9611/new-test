@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // 宣告全域變數以供所有相關函式存取
 let scene, renderer, defaultCamera, currentCamera, controls, raycaster, mouse;
@@ -37,23 +37,14 @@ createApp({
             infoModalButtonText: '進入參觀', // 新增：資訊彈出視窗按鈕文字
             modalAction: '', // 新增：彈出視窗按鈕的動作類型
             showModalButton: true, // 新增：控制是否顯示彈出視窗按鈕
-            isInitialized: false, // 新增：追蹤應用程式是否已初始化
-            showImageCarousel: false, // 控制是否顯示圖片輪播
-            carouselImages: [],       // 輪播圖片的陣列
-            currentImageIndex: 0      // 當前顯示圖片的索引
+            isInitialized: false // 新增：追蹤應用程式是否已初始化
         }
     },
     methods: {
-        nextImage() {
-            this.currentImageIndex = (this.currentImageIndex + 1) % this.carouselImages.length;
-        },
-        prevImage() {
-            this.currentImageIndex = (this.currentImageIndex - 1 + this.carouselImages.length) % this.carouselImages.length;
-        },
         toggleMenu() {
             this.isMenuOpen = !this.isMenuOpen;
             if (controls) {
-                // 選單開啟時禁用 controls，關閉時啟用
+                controls.enabled = !this.isMenuOpen; // 選單開啟時禁用 controls，關閉時啟用
                 if (this.isMenuOpen) {
                     console.log('選單已開啟，OrbitControls 已禁用。');
                 } else {
@@ -67,10 +58,7 @@ createApp({
         },
         handleNavClick(action) {
             this.selectedAction = action;
-            if (action === 'backToMain') {
-                window.location.href = 'loading畫面.html?target=主題頁面.html';
-                this.actionMessage = '回到前頁已點擊';
-            } else if (action === 'import') {
+            if (action === 'import') {
                 window.location.href = 'loading畫面.html?target=交通資訊.html';
                 this.actionMessage = '進入專案已點擊';
             } else if (action === 'navigation') {
@@ -105,6 +93,7 @@ createApp({
 
                 console.log(`切換目標攝影機 ${cameraName} 的宣告位置:`, targetCamera.position);
 
+                controls.enabled = false;
                 isFirstPersonMode = targetIsFirstPersonMode;
 
                 gsap.to(currentCamera.position, {
@@ -146,6 +135,8 @@ createApp({
             this.showInfoModal = false;
             // 重新啟用 OrbitControls
             if (controls) { // 檢查 controls 是否已定義
+                controls.enabled = true;
+                controls.update();
                 console.log('資訊彈出視窗已關閉，OrbitControls 已重新啟用。');
             }
         },
@@ -153,33 +144,19 @@ createApp({
         showFrameInfo(itemName, clickedObject = null) {
             // 禁用 OrbitControls
             if (controls) { // 檢查 controls 是否已定義
+                controls.enabled = false;
                 console.log('OrbitControls 已禁用。');
             }
 
             let displayTitle = itemName; // 預設使用傳入的 itemName
             let displayContent = '沒有找到該物件的介紹資訊。';
 
-            // 向上找尋 customDisplayName
-            if (clickedObject) {
-                let parent = clickedObject;
-                while (parent) {
-                    if (parent.userData && parent.userData.customDisplayName) {
-                        displayTitle = parent.userData.customDisplayName;
-                        break;
-                    }
-                    parent = parent.parent;
-                }
+            // 如果傳入了 clickedObject 且它有 customDisplayName，則優先使用 customDisplayName 作為標題
+            if (clickedObject && clickedObject.userData && clickedObject.userData.customDisplayName) {
+                displayTitle = clickedObject.userData.customDisplayName;
             }
 
-
-
-
             // 根據原始物件名稱設定不同的內容 (這裡保持您現有的邏輯，用 itemName 來判斷)
-            // 重置圖片輪播狀態
-            this.showImageCarousel = false;
-            this.carouselImages = [];
-            this.currentImageIndex = 0;
-
             switch (itemName) {
                 case '畫框01':
                     displayContent = [
@@ -416,7 +393,7 @@ createApp({
                     window.location.href = 'loading畫面.html?target=台灣歷史.html';
                     break;
                 case 'exit':
-                    window.location.href = 'loading畫面.html?target=主題頁面.html';
+                    window.location.href = 'loading畫面.html?target=index.html';
                     break;
                 case 'viewArtwork':
                     // 這裡可以添加跳轉到畫作詳細頁面或執行其他操作的邏輯
@@ -466,10 +443,6 @@ createApp({
 
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object; // 這是實際被點擊的 Three.js 物件
-                console.log('Clicked object:', clickedObject);
-                console.log('Clicked object userData:', clickedObject.userData);
-
-
 
                 // clickableFramesAndDoor 和 frameNames 現在是全域變數
                 const clickableObjects = ["畫框01", "畫框02", "畫框03", "畫框04", "畫框05", "畫框06", "畫框07", "畫框08", "桌子", "大門"];
@@ -513,6 +486,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera3 的位置
@@ -563,6 +537,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera8 的位置
@@ -613,6 +588,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera9 的位置
@@ -663,6 +639,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera10 的位置
@@ -713,6 +690,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera8 的位置
@@ -763,6 +741,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera8 的位置
@@ -813,6 +792,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera9 的位置
@@ -863,6 +843,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera8 的位置
@@ -913,6 +894,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera8 的位置
@@ -964,6 +946,7 @@ createApp({
                             currentCamera = targetCamera;
 
                             // 禁用 OrbitControls
+                            controls.enabled = false;
                             isFirstPersonMode = true; // 設定為第一人稱模式
 
                             // 使用 GSAP 動畫平滑移動攝影機到 NavCamera11 的位置
@@ -1018,10 +1001,13 @@ createApp({
 
                         console.log(`點擊了 "${targetNavPointName}"，準備切換到攝影機 "${currentCamera.name}"`);
                         console.log('Current isFirstPersonMode:', isFirstPersonMode); // Debug log
-                        console.log('Controls enabled before disable:'), // Debug log
+                        console.log('Controls enabled before disable:', controls.enabled); // Debug log
 
                         // 禁用 OrbitControls
-                        console.log('Controls enabled after disable:'), // 判斷是否為第一人稱模式 (這個是全域變數，會在動畫開始時設定)
+                        controls.enabled = false;
+                        console.log('Controls enabled after disable:', controls.enabled);
+
+                        // 判斷是否為第一人稱模式 (這個是全域變數，會在動畫開始時設定)
                         isFirstPersonMode = targetIsFirstPersonMode; // 現在直接使用儲存的目標模式
                         console.log('New isFirstPersonMode:', isFirstPersonMode);
 
@@ -1068,16 +1054,18 @@ createApp({
 
                                 } else {
                                     // 恢復 OrbitControls 設置，並啟用
-                                    // 更新 OrbitControls 所控制的攝影機
+                                    controls.object = currentCamera; // 更新 OrbitControls 所控制的攝影機
                                     // *** 修正：使用 currentTargetCameraObj 確保正確的 initialLookAt ***
-                                    // 設定為導覽攝影機的初始目標點，實現軌道旋轉
-                                    // 解除垂直旋轉限制
-                                    // 解除垂直旋轉限制
-                                    // 啟用 OrbitControls
-                                    // 強制更新 controls
+                                    controls.target.copy(currentTargetCameraObj.initialLookAt || new THREE.Vector3(0, 0, 0)); // 設定為導覽攝影機的初始目標點，實現軌道旋轉
+                                    controls.enableZoom = true;
+                                    controls.enablePan = true;
+                                    controls.minPolarAngle = 0; // 解除垂直旋轉限制
+                                    controls.maxPolarAngle = Math.PI; // 解除垂直旋轉限制
+                                    controls.enabled = true; // 啟用 OrbitControls
+                                    controls.update(); // 強制更新 controls
                                     console.log('OrbitControls re-enabled for non-first-person mode.'); // Debug log
                                 }
-                               
+                                console.log('Controls enabled at end of position animation:', controls.enabled); // Debug log
                             }
                         });
 
@@ -1112,57 +1100,57 @@ createApp({
 
         // 導覽攝影機的設定 (保持不變)
         cameraNav1 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav1.name = "NavCamera1";
-        cameraNav1.position.set(3.13, -0.3, -0.21);
-
-        cameraNav2 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav2.name = "NavCamera2";
-        cameraNav2.position.set(-2.49, -0.3, -0.21);
-
-        cameraNav3 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav3.name = "NavCamera3";
-        cameraNav3.position.set(3.38, -0.3, -0.21);
-
-        cameraNav4 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav4.name = "NavCamera4";
-        cameraNav4.position.set(1.50, -0.3, -0.21);
-
-        cameraNav5 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav5.name = "NavCamera5";
-        cameraNav5.position.set(-1.9, -0.3, -0.21);
-
-        cameraNav6 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav6.name = "NavCamera6";
-        cameraNav6.position.set(-2.8, -0.3, -0.21);
-
-
-        cameraNav7 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav7.name = "NavCamera7";
-        cameraNav7.position.set(3.13, -0.3, -0.21);
-        cameraNav7.rotation.y = Math.PI; // 將攝影機繞 Y 軸旋轉 180 度 (π 弧度)
-
-        cameraNav8 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav8.name = "NavCamera8";
-        cameraNav8.position.set(-2.49, -0.3, -0.21); // 調整位置
-
-
-        cameraNav9 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav9.name = "NavCamera9";
-        cameraNav9.position.set(-2.49, -0.3, -0.21); // 調整位置
-        cameraNav9.rotation.y = Math.PI;
-
-        cameraNav10 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav10.name = "NavCamera10";
-        cameraNav10.position.set(-1.1, -0.3, -0.21);
-        cameraNav10.rotation.y = -Math.PI / 2;
-
-        cameraNav11 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav11.name = "NavCamera11";
-        cameraNav11.position.set(-2.49, -0.3, -0.21);
-
-        cameraNav12 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        cameraNav12.name = "NavCamera12";
-        cameraNav12.position.set(3.13, -0.3, -0.21);
+                cameraNav1.name = "NavCamera1";
+                cameraNav1.position.set(3.13, -0.3, -0.21);
+        
+                cameraNav2 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav2.name = "NavCamera2";
+                cameraNav2.position.set(-2.49, -0.3, -0.21);
+        
+                cameraNav3 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav3.name = "NavCamera3";
+                cameraNav3.position.set(3.38, -0.3, -0.21);
+        
+                cameraNav4 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav4.name = "NavCamera4";
+                cameraNav4.position.set(1.50, -0.3, -0.21);
+        
+                cameraNav5 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav5.name = "NavCamera5";
+                cameraNav5.position.set(-1.9, -0.3, -0.21);
+        
+                cameraNav6 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav6.name = "NavCamera6";
+                cameraNav6.position.set(-2.8, -0.3, -0.21);
+        
+        
+                cameraNav7 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav7.name = "NavCamera7";
+                cameraNav7.position.set(3.13, -0.3, -0.21);
+                cameraNav7.rotation.y = Math.PI; // 將攝影機繞 Y 軸旋轉 180 度 (π 弧度)
+        
+                cameraNav8 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav8.name = "NavCamera8";
+                cameraNav8.position.set(-2.49, -0.3, -0.21); // 調整位置
+        
+        
+                cameraNav9 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav9.name = "NavCamera9";
+                cameraNav9.position.set(-2.49, -0.3, -0.21); // 調整位置
+                cameraNav9.rotation.y = Math.PI;
+        
+                cameraNav10 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav10.name = "NavCamera10";
+                cameraNav10.position.set(-1.1, -0.3, -0.21);
+                cameraNav10.rotation.y = -Math.PI / 2;
+        
+                cameraNav11 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav11.name = "NavCamera11";
+                cameraNav11.position.set(-2.49, -0.3, -0.21);
+        
+                cameraNav12 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                cameraNav12.name = "NavCamera12";
+                cameraNav12.position.set(3.13, -0.3, -0.21);
 
 
 
@@ -1192,40 +1180,6 @@ createApp({
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
-// 📱 改良 touch 控制與 debug log
-renderer.domElement.addEventListener('touchstart', (e) => {
-    isDragging = true;
-    previousMousePosition = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
-    };
-    console.log("📱 touchstart", previousMousePosition);
-    alert("📱 偵測到觸控事件");
-}, { passive: false });
-
-renderer.domElement.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-
-    const deltaX = e.touches[0].clientX - previousMousePosition.x;
-    const deltaY = e.touches[0].clientY - previousMousePosition.y;
-
-    c目前相機.rotation.y -= deltaX * 0.02; 
-    c目前相機.rotation.x -= deltaY * 0.02; 
-    c目前相機.rotation.x = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, 目前相機.rotation.x));
-
-   console.log("📱 touchmove | rotX:", currentCamera.rotation.x.toFixed(2), "| rotY:", currentCamera.rotation.y.toFixed (2)); 
-
-    previousMousePosition = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY
-    };
-}, { passive: false });
-
-renderer.domElement.addEventListener('touchend', () => {
-    isDragging = false;
-    console.log("📱 touchend");
-});
-
 // ✅ 自訂第一人稱視角旋轉控制器（滑鼠 + 觸控）
 let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
@@ -1246,9 +1200,9 @@ function onMouseMove(e) {
     const deltaX = e.clientX - previousMousePosition.x;
     const deltaY = e.clientY - previousMousePosition.y;
 
-    c urrentC amera.rotation.y - = deltaX *靈敏度; 
-    c urrentC amera.rotation.x - = deltaY * 靈敏度; 
-    c當前相機.旋轉.x = clip(當前相機.旋轉.x， -maxVerticalAngle， maxVerticalAngle);
+    currentCamera.rotation.y -= deltaX * sensitivity;
+    currentCamera.rotation.x -= deltaY * sensitivity;
+    currentCamera.rotation.x = clamp(currentCamera.rotation.x, -maxVerticalAngle, maxVerticalAngle);
 
     previousMousePosition = { x: e.clientX, y: e.clientY };
 }
@@ -1275,9 +1229,9 @@ renderer.domElement.addEventListener('touchmove', (e) => {
     const deltaX = e.touches[0].clientX - previousMousePosition.x;
     const deltaY = e.touches[0].clientY - previousMousePosition.y;
 
-    c urrentC amera.rotation.y - = deltaX *靈敏度; 
-    c urrentC amera.rotation.x - = deltaY * 靈敏度; 
-    c當前相機.旋轉.x = clip(當前相機.旋轉.x， -maxVerticalAngle， maxVerticalAngle);
+    currentCamera.rotation.y -= deltaX * sensitivity;
+    currentCamera.rotation.x -= deltaY * sensitivity;
+    currentCamera.rotation.x = clamp(currentCamera.rotation.x, -maxVerticalAngle, maxVerticalAngle);
 
     previousMousePosition = {
         x: e.touches[0].clientX,
@@ -1299,7 +1253,20 @@ renderer.domElement.addEventListener('touchend', () => {
         scene.add(directionalLight);
 
         // 3. 初始化 OrbitControls (賦值給全域變數)
-        // 禁用縮放功能
+        controls = new OrbitControls(currentCamera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 1;
+        controls.maxDistance = 50;
+        controls.enableZoom = false; // 禁用縮放功能
+        controls.enableRotate = true;
+
+        // ✅ 加這段以支援手機手勢操作
+        controls.touches = {
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN
+        };
 
         // 4. 初始化變數 (賦值給全域變數)
         const loader = new GLTFLoader();
@@ -1326,10 +1293,9 @@ renderer.domElement.addEventListener('touchend', () => {
 
                 // *** 新增開始：為特定物件添加自訂顯示名稱到 userData ***
                 loadedModel.traverse((child) => {
-                    // Check if the child has a name that matches our target names
-                    // We are being more general here, not just checking for isMesh
-                    switch (child.name) {
-                        case '畫框01':
+                    if (child.isMesh) {
+                        switch (child.name) {
+                            case '畫框01':
                             child.userData.customDisplayName = '松山文創園區';
                             console.log(`Set customDisplayName for ${child.name}:`, child.userData.customDisplayName);
                             break;
@@ -1369,7 +1335,8 @@ renderer.domElement.addEventListener('touchend', () => {
                             child.userData.customDisplayName = '出口';
                             console.log(`Set customDisplayName for ${child.name}:`, child.userData.customDisplayName);
                             break;
-                        // 如果有其他物件需要自訂名稱，可以在這裡添加
+                            // 如果有其他物件需要自訂名稱，可以在這裡添加
+                        }
                     }
                 });
                 // *** 新增結束：為特定物件添加自訂顯示名稱到 userData ***
@@ -1406,7 +1373,7 @@ renderer.domElement.addEventListener('touchend', () => {
                     const targetCamera = initialCameraConfig.camera;
                     currentCamera = targetCamera;
                     isFirstPersonMode = initialCameraConfig.isFirstPerson;
-                    // Disable controls if in first-person mode
+                    controls.enabled = !isFirstPersonMode; // Disable controls if in first-person mode
 
                     if (isFirstPersonMode) {
                         currentCamera.rotation.set(initialCameraConfig.initialRotationX, initialCameraConfig.initialRotationY, 0, 'YXZ');
@@ -1414,6 +1381,13 @@ renderer.domElement.addEventListener('touchend', () => {
                         firstPersonRotationY = initialCameraConfig.initialRotationY;
                         console.log(`已設定初始視角為 "${targetCamera.name}" (第一人稱)。`);
                     } else {
+                        controls.object = currentCamera;
+                        controls.target.copy(initialCameraConfig.initialLookAt || new THREE.Vector3(0, 0, 0));
+                        controls.enableZoom = true;
+                        controls.enablePan = true;
+                        controls.minPolarAngle = 0;
+                        controls.maxPolarAngle = Math.PI;
+                        controls.update();
                         console.log(`已設定初始視角為 "${targetCamera.name}" (第三人稱)。`);
                     }
                     console.log(`${targetCamera.name} 座標為: `, targetCamera.position);
@@ -1423,6 +1397,8 @@ renderer.domElement.addEventListener('touchend', () => {
                 }
 
                 // 確保控制器更新其內部狀態
+                controls.update();
+
                 // 輸出標示點的座標
                 targetObjectNames.forEach(name => {
                     const marker = loadedModel.getObjectByName(name);
@@ -1455,7 +1431,8 @@ renderer.domElement.addEventListener('touchend', () => {
             cameraZ *= 1.5; // 攝影機距離模型的乘數
 
             defaultCamera.position.set(modelCenter.x, modelCenter.y, modelCenter.z + cameraZ);
-            }
+            controls.target.copy(modelCenter);
+        }
 
         function onWindowResize() {
             const aspect = container.clientWidth / container.clientHeight;
@@ -1510,32 +1487,19 @@ renderer.domElement.addEventListener('touchend', () => {
             if (intersects.length > 0) {
                 const intersectedMesh = intersects[0].object; // The actual mesh hit by the raycaster
 
-                let currentObject = intersectedMesh;
-                while (currentObject) {
-                    // Prioritize customDisplayName if it exists on the current object
-                    if (currentObject.userData && currentObject.userData.customDisplayName) {
-                        objectToHighlight = currentObject;
-                        tooltipText = currentObject.userData.customDisplayName;
-                        break; // Found the most specific custom name, stop traversing up
+                // Traverse up the hierarchy to find the named highlightable object (使用全域變數 highlightableNames)
+                let parent = intersectedMesh;
+                while (parent) {
+                    if (highlightableNames.includes(parent.name)) {
+                        objectToHighlight = parent;
+                        tooltipText = parent.userData.customDisplayName || parent.name; // 優先使用 customDisplayName，否則使用物件名稱
+                        break;
                     }
-
-                    // If no customDisplayName, but the object's name is in highlightableNames,
-                    // use its original name as a fallback.
-                    // We don't break here because a child might have a customDisplayName.
-                    if (highlightableNames.includes(currentObject.name)) {
-                        // Only set if we haven't found a more specific object with customDisplayName yet
-                        if (!objectToHighlight || !objectToHighlight.userData.customDisplayName) {
-                            objectToHighlight = currentObject;
-                            tooltipText = currentObject.name;
-                        }
-                    }
-                    currentObject = currentObject.parent;
+                    parent = parent.parent;
                 }
             }
 
             if (objectToHighlight) {
-                console.log("Hovered object name:", objectToHighlight.name);
-                console.log("Hovered object userData:", objectToHighlight.userData);
                 // Highlight single object (whether it's a frame or not)
                 objectToHighlight.traverse(child => {
                     if (child.isMesh && child.material) {
@@ -1594,7 +1558,7 @@ renderer.domElement.addEventListener('touchend', () => {
             if (event.key === 'Escape') {
                 console.log('按下 ESC 鍵，切換回預設攝影機');
                 console.log('Current isFirstPersonMode before ESC:', isFirstPersonMode); // Debug log
-                console.log('Controls enabled before ESC:'), // Debug log
+                console.log('Controls enabled before ESC:', controls.enabled); // Debug log
 
                 // 停止第一人稱模式
                 isFirstPersonMode = false;
@@ -1603,9 +1567,9 @@ renderer.domElement.addEventListener('touchend', () => {
 
                 // 啟用 OrbitControls (會自動接管 currentCamera)
                 if (controls) { // 檢查 controls 是否已定義
-                    
+                    controls.enabled = true;
+                    console.log('Controls enabled after ESC re-enable:', controls.enabled); // Debug log
                 }
-            
 
 
                 // 使用 GSAP 動畫平滑移動攝影機
@@ -1617,21 +1581,21 @@ renderer.domElement.addEventListener('touchend', () => {
                     ease: "power2.inOut",
                     onUpdate: function () {
                         if (controls && controls.target) { // 確保 controls 和 controls.target 已定義
-                            currentCamera.lookAt()// 確保在動畫過程中攝影機看向目標
+                            currentCamera.lookAt(controls.target); // 確保在動畫過程中攝影機看向目標
                         }
                     },
                     onComplete: function () {
                         console.log('GSAP ESC position animation complete.'); // Debug log
                         currentCamera = defaultCamera; // 正式切換攝影機實例
                         if (controls) { // 檢查 controls 是否已定義
-                            // 更新 OrbitControls 所控制的攝影機
-                            // 預設攝影機的目標通常是原點
-                            // 啟用縮放
-                            // 啟用平移
-                            // 解除垂直旋轉限制
-                            // 解除垂直旋轉限制
-                            // 強制更新 controls
-                            
+                            controls.object = currentCamera; // 更新 OrbitControls 所控制的攝影機
+                            controls.target.set(0, 0, 0); // 預設攝影機的目標通常是原點
+                            controls.enableZoom = true; // 啟用縮放
+                            controls.enablePan = true; // 啟用平移
+                            controls.minPolarAngle = 0; // 解除垂直旋轉限制
+                            controls.maxPolarAngle = Math.PI; // 解除垂直旋轉限制
+                            controls.update(); // 強制更新 controls
+                            console.log('Controls enabled at end of ESC animation:', controls.enabled); // Debug log
                         }
                     }
                 });
@@ -1663,7 +1627,8 @@ renderer.domElement.addEventListener('touchend', () => {
 
             // 只有當不在第一人稱模式時，才更新 OrbitControls
             if (!isFirstPersonMode && controls) { // 檢查 controls 是否已定義
-                }
+                controls.update();
+            }
 
             if (renderer && scene && currentCamera) { // 檢查核心 Three.js 物件是否已定義
                 renderer.render(scene, currentCamera); // 使用 currentCamera 渲染
