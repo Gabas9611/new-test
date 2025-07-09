@@ -68,7 +68,7 @@ createApp({
             } else if (action === 'navigation') {
                 this.actionMessage = '進入導覽已點擊';
             } else if (action === 'introduction') {
-                window.location.href = 'loading畫面.html?target=index.html';
+                window.location.href = 'loading.html?target=index.html';
                 this.actionMessage = '簡介已點擊';
             } else if (action === 'traffic') {
                 this.actionMessage = '交通資訊已點擊';
